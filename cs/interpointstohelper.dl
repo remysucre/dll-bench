@@ -1,0 +1,68 @@
+Pattern Function Module InterPointsTo_Helper 
+model   org.inca.sa.inter.test.cs    imports     Type                                                                                                                                                                                                                                                                                           
+------------------------------                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                              
+join type ParentshipRelevant = Expression | Statement | StatementList | IOperation | BaseMethodDeclaration | Classifier                                                                                                                                                                                                                                                                       
+join type Heap = Expression                                                                                                                                                                                                                                                                                                                                                                   
+join type Var = VariableDeclaration | ThisExpression                                                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                                                                                                              
+protected rel isSubClassifier(sub : Classifier, sup : Classifier) = { 
+  assert sub == sup 
+} alt { 
+  stepT := getSuperType(sub) 
+  stepC := stepT.classifier 
+  assert def isSubClassifier(stepC, sup) 
+}                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                                              
+protected def getSuperType(sub : Classifier) : ClassifierType = { 
+  assert sub instanceOf ClassConcept 
+  return sub.superclass 
+} alt { 
+  assert sub instanceOf ClassConcept 
+  return sub.implementedInterface 
+} alt { 
+  assert sub instanceOf Interface 
+  return sub.extendedInterface 
+}                                                                                             
+                                                                                                                                                                                                                                                                                                                                                                                              
+protected rel Assignment(left : Expression, right : Expression) = { 
+  assert exp instanceOf AssignmentExpression 
+  assert left == exp.lValue 
+  assert right == exp.rValue 
+}                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                              
+protected rel isInMethod(node : ParentshipRelevant, method : BaseMethodDeclaration) = { 
+  assert def isInAncestorDescendantRelationship(method, node) 
+}                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                                                                                                              
+protected rel isInStatement(node : ParentshipRelevant, stmt : Statement) = { 
+  assert def isInAncestorDescendantRelationship(stmt, node) 
+}                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                              
+protected rel isInAncestorDescendantRelationship(parent : ParentshipRelevant, child : ParentshipRelevant) = { 
+  assert child.parent == parent 
+} alt { 
+  step := child.parent 
+  assert def isInAncestorDescendantRelationship(parent, step) 
+}                                                                                                                                             
+                                                                                                                                                                                                                                                                                                                                                                                              
+protected def asTypeLatticeValue(nType : Type) : Type = { 
+  assert nType instanceOf ClassifierType 
+  classifier := nType.classifier 
+  return Type.Wrapper(classifier) 
+} alt { 
+  assert nType instanceOf StringType 
+  return Type.String 
+} alt { 
+  assert nType instanceOf IntegerType 
+  return Type.Integer 
+} alt { 
+  assert nType instanceOf BooleanType 
+  return Type.Boolean 
+}
+                                                                                                                                                                                                                                                                                                                                                                                              
+protected def getClassifier(type : Type) : Classifier = { 
+  assert type instanceOf ClassifierType 
+  return type.classifier 
+}                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                              

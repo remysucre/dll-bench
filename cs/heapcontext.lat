@@ -1,0 +1,11 @@
+ADT Definition Module HeapContext 
+model   org.inca.sa.inter.test.cs    imports     CallContext
+------------------------------                                                                 
+                                                                                               
+Constructors: HCTX                                                                             
+                                                                                               
+Operations:                                                                                    
+                                                                                               
+def record(final heap : node<>, final ctx : CallContext) : HeapContext = { 
+  return HCTX; 
+}  

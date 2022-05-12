@@ -1,0 +1,38 @@
+Pattern Function Module IntervalAnalysis 
+model   org.inca.data.test.analyses.plugin 
+package interval    imports     IntervalLattice                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                      ControlFlowAnalysis                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                      CommonAnalysisFunctions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+------------------------------                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+public def getIntervalBefore(node : Stmt, var : VariableDeclaration) : IntervalLattice/lub = { 
+  source := getFlowSource(node) 
+  return getIntervalAfter(source, var) 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+public def getIntervalAfter(node : Stmt, var : VariableDeclaration) : IntervalLattice/lub = { 
+  assert undef affectsVariable(node, var) 
+  return getIntervalBefore(node, var) 
+} alt { 
+  initializer := getInitializerFor(node, var) 
+  lat := getInterval_Expression(node, initializer) 
+  return lat 
+}                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+protected def getInterval_Expression(node : Stmt, exp : Expression) : IntervalLattice/lub = { 
+  assert exp instanceOf IntegerConstant 
+  value := exp.value 
+  return IntervalLattice.singleton(value) 
+} alt { 
+  assert exp instanceOf VariableReference 
+  return getIntervalBefore(node, exp.variableDeclaration) 
+} alt { 
+  assert exp instanceOf PostfixIncrementExpression 
+  base := getInterval_Expression(node, exp.expression) 
+  return IntervalLattice.unaryOp(base, Operation.ADD, 1) 
+} alt { 
+  assert exp instanceOf PostfixDecrementExpression 
+  base := getInterval_Expression(node, exp.expression) 
+  return IntervalLattice.unaryOp(base, Operation.SUB, 1) 
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       

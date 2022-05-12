@@ -1,0 +1,59 @@
+Lattice Definition Module SObject 
+model   org.inca.sa.inter.test.cs    imports     nothing                                                                                                                                                                                                                    
+------------------------------                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                               
+Constructors: SBot | SObj(node<Expression>) | STop                                                                                                                                                                                                                                                             
+                                                                                                                                                                                                                                                                                                               
+Operations:                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                               
+def bot() : SObject = { 
+  return SBot; 
+}                                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                               
+def top() : SObject = { 
+  return STop; 
+}                                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                               
+def leq(l : SObject, r : SObject) : boolean = { 
+  match (l, r) with { 
+    case (SBot, _) => return true; 
+    case (_, STop) => return true; 
+    case (SObj(le), SObj(re)) => return Objects.equals(le, re); 
+    case _ => return false; 
+  }; 
+}                                                          
+                                                                                                                                                                                                                                                                                                               
+def lub(l : SObject, r : SObject) : SObject = { 
+  match (l, r) with { 
+    case (_, SBot) => return l; 
+    case (SBot, _) => return r; 
+    case (SObj(le), SObj(re)) => if (Objects.equals(le, re)) { 
+        return l; 
+      } else { 
+        return STop; 
+      } 
+    case _ => return STop; 
+  }; 
+}
+                                                                                                                                                                                                                                                                                                               
+def glb(l : SObject, r : SObject) : SObject = { 
+  match (l, r) with { 
+    case (_, STop) => return l; 
+    case (STop, _) => return r; 
+    case (SObj(le), SObj(re)) => if (Objects.equals(le, re)) { 
+        return l; 
+      } else { 
+        return SBot; 
+      } 
+    case _ => return SBot; 
+  }; 
+}
+                                                                                                                                                                                                                                                                                                               
+def getObject(v : SObject) : node<Expression> = { 
+  match v with { 
+    case SBot => return null; 
+    case STop => return null; 
+    case SObj(ve) => return ve; 
+  }; 
+}                                                                                                                                    
+                                                                                                                                                                                                                                                                                                               

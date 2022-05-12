@@ -1,0 +1,37 @@
+Lattice Definition Module InitState 
+model   org.inca.data.test.analyses.plugin 
+package uninit    imports     nothing                                        
+------------------------------                                                                                                                                
+                                                                                                                                                              
+Constructors: UnInit | Init                                                                                                                                   
+                                                                                                                                                              
+Operations:                                                                                                                                                   
+                                                                                                                                                              
+def bot() : InitState = { 
+  return Init; 
+}                                                                                                                  
+                                                                                                                                                              
+def top() : InitState = { 
+  return UnInit; 
+}                                                                                                                
+                                                                                                                                                              
+def leq(l : InitState, r : InitState) : boolean = { 
+  match (l, r) with { 
+    case (Init, _) => return true; 
+    case _ => return false; 
+  }; 
+}          
+                                                                                                                                                              
+def lub(l : InitState, r : InitState) : InitState = { 
+  match (l, r) with { 
+    case (Init, Init) => return Init; 
+    case _ => return UnInit; 
+  }; 
+}    
+                                                                                                                                                              
+def glb(l : InitState, r : InitState) : InitState = { 
+  match (l, r) with { 
+    case (UnInit, UnInit) => return UnInit; 
+    case _ => return Init; 
+  }; 
+}

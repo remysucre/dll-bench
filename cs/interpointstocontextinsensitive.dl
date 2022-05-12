@@ -1,0 +1,65 @@
+Pattern Function Module InterPointsTo_ContextInsensitive 
+model   org.inca.sa.inter.test.cs    imports     InterPointsTo_Base                                                                                                                                                                                                                                                                                                                                                                                                                               
+------------------------------                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+def varPointsTo(var : Var) : Heap = { 
+  assert def reachable(method) 
+  assert def alloc(var, obj, method) 
+  return obj 
+} alt { 
+  assert def move(var, from) 
+  return varPointsTo(from) 
+} alt { 
+  assert def load(var, base, field) 
+  baseH := varPointsTo(base) 
+  heap := fieldPointsTo(baseH, field) 
+  return heap 
+} alt { 
+  assert def interProcAssign(var, from) 
+  return varPointsTo(from) 
+} alt { 
+  assert def isThisVar(var, toMethod) 
+  assert toMethod == lookup(base, call, inMethod) 
+  obj := varPointsTo(base) 
+  return obj 
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+def fieldPointsTo(base : Heap, field : FieldDeclaration) : Heap = { 
+  assert def store(baseVar, field, from) 
+  assert base == varPointsTo(baseVar) 
+  fromHeap := varPointsTo(from) 
+  return fromHeap 
+}                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+rel reachable(method : BaseMethodDeclaration) = { 
+  assert method instanceOf StaticMethodDeclaration 
+} alt { 
+  assert method == lookup(_, _, _) 
+}                                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+rel callGraph(call : IMethodCall, method : BaseMethodDeclaration) = { 
+  assert method == lookup(_, call, _) 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+def lookup(base : Var, call : IMethodCall, inMethod : BaseMethodDeclaration) : BaseMethodDeclaration = { 
+  (mName, argumentTypes) := vcall(base, call, inMethod) 
+  assert def reachable(inMethod) 
+  heap := varPointsTo(base) 
+  heapT := getObjectType(heap) 
+  classifier := Type.unwrapClassifier(heapT) 
+  (methodName, parameterTypes, toMethod) := getMethods(classifier) 
+  assert mName == methodName 
+  assert TypeMap.leqExt(argumentTypes, parameterTypes, true) == true 
+  return toMethod 
+}                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+rel interProcAssign(to : Var, from : Var) = { 
+  assert def callGraph(call, method) 
+  assert to == getFormalParameter(method, n) 
+  assert from == getActualArgument(call, n) 
+} alt { 
+  assert def callGraph(call, method) 
+  assert from == getFormalReturn(method) 
+  assert to == getActualReturn(call) 
+}                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            

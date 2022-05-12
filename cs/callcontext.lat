@@ -1,0 +1,11 @@
+ADT Definition Module CallContext 
+model   org.inca.sa.inter.test.cs    imports     HeapContext                                                                
+------------------------------                                                                                                                                 
+                                                                                                                                                               
+Constructors: CTX | W(node<IMethodCall>)                                                                                                                       
+                                                                                                                                                               
+Operations:                                                                                                                                                    
+                                                                                                                                                               
+def merge(final heap : node<Expression>, final hctx : HeapContext, final call : node<IMethodCall>, final ctx : CallContext) : CallContext = { 
+  return CTX; 
+}

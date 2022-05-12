@@ -1,0 +1,46 @@
+Pattern Function Module InterPointsTo_ContextInsensitiveSU 
+model   org.inca.sa.inter.test.cs    imports     InterPointsTo_Base                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                             SObject                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+------------------------------                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+def varPointsTo(var : Var) : SObject/lub = { 
+  assert def reachable(func) 
+  assert def alloc(var, obj, func) 
+  return SObj(obj) 
+} alt { 
+  assert def move(var, from) 
+  return varPointsTo(from) 
+} alt { 
+  (_, var, oSet) := resolve(_) 
+  return oSet 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+rel reachable(method : BaseMethodDeclaration) = { 
+  assert method instanceOf StaticMethodDeclaration 
+} alt { 
+  (method, _, _) := resolve(_) 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+def resolve(call : IMethodCall) : (BaseMethodDeclaration, Var, SObject) = { 
+  (mName, argumentTypes) := vcall(base, call, inMethod) 
+  assert def reachable(inMethod) 
+  baseHeapSet := varPointsTo(base) 
+  switch { 
+    assert baseHeapSet != STop 
+    baseHeap := SObject.getObject(baseHeapSet) 
+    heapT := getObjectType(baseHeap) 
+    classifier := Type.unwrapClassifier(heapT) 
+    (methodName, parameterTypes, toMethod) := getMethods(classifier) 
+    assert mName == methodName 
+    assert TypeMap.leqExt(argumentTypes, parameterTypes, true) == true 
+    assert def isThisVar(var, toMethod) 
+    return (toMethod, var, baseHeapSet) 
+  } alt { 
+    assert baseHeapSet == STop 
+    (methodName, parameterTypes, toMethod) := getMethods(_) 
+    assert mName == methodName 
+    assert TypeMap.leqExt(argumentTypes, parameterTypes, true) == true 
+    assert def isThisVar(var, toMethod) 
+    return (toMethod, var, baseHeapSet) 
+  } 
+}

@@ -1,0 +1,210 @@
+Pattern Function Module InterPointsTo_Base 
+model   org.inca.sa.inter.test.cs    imports     InterPointsTo_Helper                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                             TypeMap                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+------------------------------                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+/** 
+  var = new ... 
+ 
+ */ 
+protected rel alloc(var : Var, heap : Heap, inMethod : BaseMethodDeclaration) = { 
+  assert def Assignment(left, heap) 
+  assert left instanceOf VariableReference 
+  assert var == left.variableDeclaration 
+  assert def isInMethod(heap, inMethod) 
+  assert heap not instanceOf VariableReference 
+  assert heap instanceOf GenericNewExpression 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+/** 
+  to = from 
+ 
+ */ 
+protected rel move(to : Var, from : Var) = { 
+  assert def Assignment(left, right) 
+  assert left instanceOf VariableReference 
+  assert to == left.variableDeclaration 
+  switch { 
+    assert right instanceOf VariableReference 
+    assert from == right.variableDeclaration 
+  } alt { 
+    assert right instanceOf ThisExpression 
+    assert from == right 
+  } 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+/** 
+  to = base.field 
+ 
+ */ 
+protected rel load(to : Var, base : Var, field : FieldDeclaration) = { 
+  assert def Assignment(left, right) 
+  assert left instanceOf VariableReference 
+  assert to == left.variableDeclaration 
+  assert right instanceOf DotExpression 
+  operand := right.operand 
+  operation := right.operation 
+  assert operand instanceOf VariableReference 
+  assert base == operand.variableDeclaration 
+  assert operation instanceOf FieldReferenceOperation 
+  assert field == operation.fieldDeclaration 
+}                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+/** 
+  base.field = from 
+ 
+ */ 
+protected rel store(base : Var, field : FieldDeclaration, from : Var) = { 
+  assert def Assignment(left, right) 
+  assert right instanceOf VariableReference 
+  assert from == right.variableDeclaration 
+  assert left instanceOf DotExpression 
+  operand := left.operand 
+  operation := left.operation 
+  assert operand instanceOf VariableReference 
+  assert base == operand.variableDeclaration 
+  assert operation instanceOf FieldReferenceOperation 
+  assert field == operation.fieldDeclaration 
+}                                                                                                                                                                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected def vcall(base : Var, call : IMethodCall, inMethod : BaseMethodDeclaration) : (string, TypeMap/lub) = { 
+  assert dot instanceOf DotExpression 
+  assert call instanceOf InstanceMethodCallOperation 
+  assert call == getCallInExpression(dot) 
+  operand := dot.operand 
+  switch { 
+    assert operand instanceOf VariableReference 
+    assert base == operand.variableDeclaration 
+  } alt { 
+    assert operand instanceOf ThisExpression 
+    assert base == operand 
+  } 
+  assert def isInMethod(call, inMethod) 
+  name := call.instanceMethodDeclaration.name 
+  switch { 
+    assert count callArgument(call, _) == 0 
+    return (name, TypeMap.bot()) 
+  } alt { 
+    assert count callArgument(call, _) != 0 
+    argument := call.actualArgument 
+    type := getObjectType(argument) 
+    index := argument.index 
+    value := TypeMap.create(index, type) 
+    return (name, value) 
+  } 
+}                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+private rel callArgument(call : IMethodCall, argument : Expression) = { 
+  assert argument == call.actualArgument 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+private rel methodParameter(method : BaseMethodDeclaration, parameter : ParameterDeclaration) = { 
+  assert parameter == method.parameter 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected rel isThisVar(var : Var, method : BaseMethodDeclaration) = { 
+  assert var instanceOf ThisExpression 
+  assert def isInMethod(var, method) 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected def getActualArgument(call : IMethodCall, n : integer) : Var = { 
+  argument := call.actualArgument 
+  assert n == argument.index 
+  assert argument instanceOf VariableReference 
+  return argument.variableDeclaration 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected def getActualReturn(call : IMethodCall) : Var = { 
+  assert def Assignment(left, right) 
+  assert call == getCallInExpression(right) 
+  assert left instanceOf VariableReference 
+  return left.variableDeclaration 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected def getFormalParameter(method : BaseMethodDeclaration, n : integer) : Var = { 
+  parameter := method.parameter 
+  assert n == parameter.index 
+  return parameter 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected def getFormalReturn(method : BaseMethodDeclaration) : Var = { 
+  assert return instanceOf ReturnStatement 
+  assert def isInMethod(return, method) 
+  exp := return.expression 
+  assert exp instanceOf VariableReference 
+  return exp.variableDeclaration 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected def getVarType(var : Var) : Type = { 
+  assert var instanceOf VariableDeclaration 
+  nType := var.type 
+  return asTypeLatticeValue(nType) 
+} alt { 
+  assert var instanceOf ThisExpression 
+  assert classifier instanceOf Classifier 
+  assert def isInAncestorDescendantRelationship(classifier, var) 
+  return Type.Wrapper(classifier) 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected def getCallInExpression(exp : Expression) : IMethodCall = { 
+  assert exp instanceOf BaseMethodCall 
+  return exp 
+} alt { 
+  assert exp instanceOf DotExpression 
+  operation := exp.operation 
+  assert operation instanceOf InstanceMethodCallOperation 
+  return operation 
+} alt { 
+  assert exp instanceOf StaticMethodCall 
+  return exp 
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected def getObjectType(exp : Heap) : Type = { 
+  assert exp instanceOf GenericNewExpression 
+  creator := exp.creator 
+  assert creator instanceOf ClassifierCreator 
+  return Type.Wrapper(creator.classifier) 
+} alt { 
+  assert exp instanceOf GenericNewExpression 
+  creator := exp.creator 
+  assert creator instanceOf DefaultClassCreator 
+  return Type.Wrapper(creator.classifier) 
+} alt { 
+  assert exp instanceOf StringLiteral 
+  return Type.String 
+} alt { 
+  assert exp instanceOf IntegerLiteral 
+  return Type.Integer 
+} alt { 
+  assert exp instanceOf BooleanConstant 
+  return Type.Boolean 
+} alt { 
+  assert exp instanceOf ThisExpression 
+  assert def isInAncestorDescendantRelationship(classifier, exp) 
+  assert classifier instanceOf Classifier 
+  return Type.Wrapper(classifier) 
+} alt { 
+  assert exp instanceOf VariableReference 
+  var := exp.variableDeclaration 
+  return asTypeLatticeValue(var.type) 
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+protected def getMethods(clazz : ClassConcept) : (string, TypeMap/lub, BaseMethodDeclaration) = { 
+  assert def isSubClassifier(clazz, superClazz) 
+  assert superClazz instanceOf ClassConcept 
+  method := superClazz.member 
+  assert method instanceOf InstanceMethodDeclaration 
+  name := method.name 
+   
+  switch { 
+    assert count methodParameter(method, _) == 0 
+    return (name, TypeMap.bot(), method) 
+  } alt { 
+    assert count methodParameter(method, _) != 0 
+    parameter := method.parameter 
+    type := asTypeLatticeValue(parameter.type) 
+    index := parameter.index 
+    value := TypeMap.create(index, type) 
+    return (name, value, method) 
+  } 
+}                                                                                                                                                                                                                                                                

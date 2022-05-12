@@ -1,0 +1,50 @@
+Lattice Definition Module TypeMap 
+model   org.inca.sa.inter.test.cs    imports     Type                                                                                                                                                                                                                                                                                                                                                                         
+------------------------------                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+Constructors: E(Map.Immutable<Integer, Type>) | Top                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+Operations:                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+def bot() : TypeMap = { 
+  return E(Map.Immutable.<Integer, Type>of()); 
+}                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+def top() : TypeMap = { 
+  return Top; 
+}                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+def leqExt(l : TypeMap, r : TypeMap, strict : boolean) : boolean = { 
+  match (l, r) with { 
+    case (_, Top) => return true; 
+    case (E(le), E(re)) => { 
+      if (strict) { 
+        if (le.size() != re.size()) { return false; } 
+      } 
+      foreach lek in le.keySet() { 
+        if (!re.containsKey(lek) || !Type.isSubType(le.get(lek), re.get(lek))) { return false; } 
+      } 
+      return true; 
+    } 
+    case _ => return false; 
+  }; 
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+def leq(l : TypeMap, r : TypeMap) : boolean = { 
+  return leqExt(l, r, false); 
+}                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+def lub(l : TypeMap, r : TypeMap) : TypeMap = { 
+  match (l, r) with { 
+    case (E(le), E(re)) => return E(le.__putAll(re)); 
+    case _ => return top(); 
+  }; 
+}                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+def glb(l : TypeMap, r : TypeMap) : TypeMap = { 
+  return l; 
+}                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+def create(index : int, type : Type) : TypeMap = { 
+  return E(Map.Immutable.<Integer, Type>of(index, type)); 
+}                                                                                                                                                                                                                                                                                                                                                 

@@ -1,0 +1,38 @@
+Pattern Function Module InitializedVariables_LAT 
+model   org.inca.data.test.analyses.plugin 
+package uninit    imports     ControlFlowAnalysis                                                                                                                                                                                                                                                                                   
+                                                                                                                            CommonAnalysisFunctions                                                                                                                                                                                                                                                                               
+                                                                                                                            InitState                                                                                                                                                                                                                                                                                             
+------------------------------                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                  
+def isInitializedVariableBefore_LAT(stmt : Stmt, var : VariableDeclaration) : InitState/lub = { 
+  src := getFlowSource(stmt) 
+  return isInitializedVariableAfter_LAT(src, var) 
+}                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                  
+def isInitializedVariableAfter_LAT(stmt : Stmt, var : VariableDeclaration) : InitState/lub = { 
+  assert undef affectsVariable(stmt, var) 
+  return isInitializedVariableBefore_LAT(stmt, var) 
+} alt { 
+  assert def affectsVariable(stmt, var) 
+  assert undef getInitializerFor(stmt, var) 
+  return UnInit 
+} alt { 
+  initializer := getInitializerFor(stmt, var) 
+  return isInitializedExpression_LAT(stmt, initializer) 
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                  
+def isInitializedExpression_LAT(stmt : Stmt, exp : Expression) : InitState = { 
+  assert exp instanceOf VariableReference 
+  var := exp.variableDeclaration 
+  return isInitializedVariableBefore_LAT(stmt, var) 
+} alt { 
+  assert exp not instanceOf VariableReference 
+  assert exp not instanceOf NullLiteral 
+  return Init 
+} alt { 
+  assert exp instanceOf NullLiteral 
+  return UnInit 
+}                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                  
