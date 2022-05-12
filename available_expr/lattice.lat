@@ -1,0 +1,38 @@
+Lattice Definition Module Availability 
+model   org.inca.data.test.analyses.plugin 
+package availableExpressions    imports     nothing                                                    
+------------------------------                                                                                                                                                             
+                                                                                                                                                                                           
+Constructors: Available | Unavailable                                                                                                                                                      
+                                                                                                                                                                                           
+Operations:                                                                                                                                                                                
+                                                                                                                                                                                           
+def bot() : Availability = { 
+  return Available; 
+}                                                                                                                                       
+                                                                                                                                                                                           
+def top() : Availability = { 
+  return Unavailable; 
+}                                                                                                                                     
+                                                                                                                                                                                           
+def leq(l : Availability, r : Availability) : boolean = { 
+  match (l, r) with { 
+    case (Available, _) => return true; 
+    case _ => return false; 
+  }; 
+}                            
+                                                                                                                                                                                           
+def lub(l : Availability, r : Availability) : Availability = { 
+  match (l, r) with { 
+    case (Available, Available) => return Available; 
+    case _ => return Unavailable; 
+  }; 
+}    
+                                                                                                                                                                                           
+def glb(l : Availability, r : Availability) : Availability = { 
+  match (l, r) with { 
+    case (Unavailable, Unavailable) => return Unavailable; 
+    case _ => return Available; 
+  }; 
+}
+                                                                                                                                                                                           
